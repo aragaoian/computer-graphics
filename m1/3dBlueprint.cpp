@@ -1,23 +1,28 @@
 #include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <math.h>
 #include <vector>
+#include <string>
 
-GLfloat vertices[6][4][3] = {
-    { {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f} },
-    { {1.0f, -1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f} },
-    { {1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f} },
-    { {1.0f, -1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f, -1.0f} },
-    { {-1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {-1.0f, -1.0f, 1.0f} },
-    { {1.0f, 1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, -1.0f} }
+GLfloat vertices[8][3] = {
+    { 1.0f,  1.0f,  1.0f },
+    { 1.0f,  1.0f, -1.0f },
+    { 1.0f, -1.0f,  1.0f },
+    { 1.0f, -1.0f, -1.0f },
+    {-1.0f,  1.0f,  1.0f },
+    {-1.0f,  1.0f, -1.0f },
+    {-1.0f, -1.0f,  1.0f },
+    {-1.0f, -1.0f, -1.0f }
 };
 
-GLfloat colors[6][3] = {
-    {0.0f, 1.0f, 0.0f},
-    {5.0f, 3.0f, 0.0f},
-    {1.0f, 0.0f, 0.0f},
-    {1.0f, 1.0f, 0.0f},
-    {0.0f, 0.0f, 1.0f},
-    {1.0f, 0.0f, 1.0f}
+int edges[12][2] = {
+    {0, 1}, {0, 2}, {0, 4},
+    {1, 3}, {1, 5},
+    {2, 3}, {2, 6},
+    {3, 7},
+    {4, 5}, {4, 6},
+    {5, 7},
+    {6, 7}
 };
 
 std::vector<std::vector<float>> xRotationMatrix(float angle) {
@@ -72,36 +77,40 @@ void initGL() {
 }
 
 
-void display() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpa o buffer de cor e o de profundidade
-    glMatrixMode(GL_MODELVIEW);     //Operar na matriz de ModelView
-
-    // Renderiza um cubo com 6 quads diferentes
-    glLoadIdentity();                 // Reseta para a matriz identidade
-    glTranslatef(0.0f, 0.0f, -7.0f);  // Move para a direta da view o que será desenhado
-
-    glBegin(GL_QUADS);                // Começa a desenhar o cubo
-    for (int face = 0; face < 6; face++) {
-        glColor3f(colors[face][0], colors[face][1], colors[face][2]);
-        for (int vertex = 0; vertex < 4; vertex++) {
-            glVertex3f(vertices[face][vertex][0],
-                       vertices[face][vertex][1],
-                       vertices[face][vertex][2]);
-        }
-    }
-    glEnd();  
-
-    glutSwapBuffers();  // Double Buffer, troca o atual pelo que está aguardando
-}
-
-void move(GLfloat (&vertices)[6][4][3], int distance, float angle) {
-	for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 4; j++) {
-            std::vector<float> p = {vertices[i][j][0], vertices[i][j][1], vertices[i][j][2]};
-            std::vector<float> newCoordinates = matMul(xRotationMatrix(angle), p); 
-            // Implementar o resto
+void move(GLfloat (&vertices)[8][3], GLfloat distance, char axis) {
+	for (int i = 0; i < 8; i++) {
+        if (axis == 'x'){
+            vertices[i][0] = vertices[i][0] + distance;
+        }else if (axis == 'y'){
+            vertices[i][1] = vertices[i][1] + distance;
+        }else{
+            vertices[i][2] = vertices[i][2] + distance;
         }
 	}
+}
+
+void scale(GLfloat (&vertices)[8][3], float scaleFactor, char axis){
+    /*
+        * 'x', 
+        * 'y', 
+        * 'z' 
+        * e 'a' (escalar em todos os eixos)
+    */
+    for (int i = 0; i < 8; i++) {
+        if (axis == 'x' || axis == 'a'){
+            vertices[i][0] = vertices[i][0] * scaleFactor;
+        }
+        if (axis == 'y' || axis == 'a'){
+            vertices[i][1] = vertices[i][1] * scaleFactor;
+        }
+        if (axis == 'z' || axis == 'a'){
+            vertices[i][2] = vertices[i][2] * scaleFactor;
+        }
+	}
+}
+
+void rotate(GLfloat (&vertices)[8][3], float angle, char axis){
+    
 }
 
 
@@ -114,21 +123,80 @@ void reshape(GLsizei width, GLsizei height) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();             
-    gluPerspective(45.0f, aspect, 0.1f, 100.0f);
+    gluPerspective(75.0f, aspect, 0.1f, 100.0f);
+}
+
+void keyboard_special(int key, int x, int y) {
+	switch (key) {
+	case GLUT_KEY_DOWN:
+		// move(vertices, -1.0f, 'y');
+        scale(vertices, 0.9, 'a');
+		break;
+
+	case GLUT_KEY_UP:
+		// move(vertices, 1.0f, 'y');
+        scale(vertices, 1.1f, 'a');
+		break;
+
+	case GLUT_KEY_RIGHT:
+		move(vertices, 1.0f, 'x');
+		break;
+
+	case GLUT_KEY_LEFT:
+		move(vertices, -1.0f, 'x');
+		break;
+
+    case GLUT_KEY_HOME:
+        move(vertices, 1.0f, 'z');
+        break;
+
+    case GLUT_KEY_END:
+        move(vertices, -1.0f, 'z');
+        break;    
+	}
+
+    glutPostRedisplay();
+}
+
+void draw(GLfloat (&vertices)[8][3]){
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_LINES);
+
+    for(int i = 0; i < 12; i++){
+        int a = edges[i][0];
+        int b = edges[i][1];
+
+        glVertex3f(vertices[a][0], vertices[a][1], vertices[a][2]);
+        glVertex3f(vertices[b][0], vertices[b][1], vertices[b][2]);
+    }
+
+    glEnd();
+}
+
+void display(void){
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpa o buffer de cor e o de profundidade
+    glMatrixMode(GL_MODELVIEW); // Operar na matriz de ModelView
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -6.0f);
+	draw(vertices);
+	glutSwapBuffers();
 }
 
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
 
-    glutInitDisplayMode(GLUT_DOUBLE); // Double buffer
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
-    glutInitWindowSize(640, 480); 
+    glutInitWindowSize(1000, 1000); 
     glutInitWindowPosition(50, 50); 
 
-    glutCreateWindow("3D Shapes");          
+    glutCreateWindow("3D Shapes");        
+    
+    glClearColor(1, 1, 1, 0);
 
     glutDisplayFunc(display);       
+    glutSpecialFunc(keyboard_special);
     glutReshapeFunc(reshape);
     initGL();                       
     glutMainLoop();                
