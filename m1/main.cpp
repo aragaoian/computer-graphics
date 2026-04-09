@@ -130,7 +130,7 @@ void cubeOperations(int key, int x, int y)
                 rotate(vertices, triangles, -15.0f, 'x');
                 break;
             case GLUT_KEY_UP:
-                rotate(vertices, triangles, -15.0f, 'x');
+                rotate(vertices, triangles, 15.0f, 'x');
                 break;
             case GLUT_KEY_HOME:
                 rotate(vertices, triangles, 15.0f, 'z');
@@ -166,8 +166,17 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpa o buffer de cor e o de profundidade
     glMatrixMode(GL_MODELVIEW);                         // Operar na matriz de ModelView
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -6.0f);
-    draw(vertices);
+
+    // mover o cubo para longe da câmera
+    GLfloat translatedVertices[8][3];
+    for (int i = 0; i < 8; i++)
+    {
+        translatedVertices[i][0] = vertices[i][0];
+        translatedVertices[i][1] = vertices[i][1];
+        translatedVertices[i][2] = vertices[i][2] - 6.0f;
+    }
+
+    draw(translatedVertices);
     glutSwapBuffers();
 }
 
