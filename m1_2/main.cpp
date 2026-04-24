@@ -24,11 +24,11 @@ float obj_rotation;
 
 int parseFaceCoordinate(string coord, bool isNormal = false){
     /*
-    The standart .obj pattern is v/vt/vn
+    The standard .obj pattern is v/vt/vn
     but this specific one is v/vn.
 
     Be aware that // is a valid approach to
-    explicity signal that this .obj file is texture omitted.
+    explicitly signal that this .obj file is texture omitted.
 
     OBS: -1 is to transform to 0-based index.
     */
