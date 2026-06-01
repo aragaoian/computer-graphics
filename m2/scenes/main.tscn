@@ -1,0 +1,115 @@
+[gd_scene load_steps=12 format=3]
+
+; Shaders externos usados pelos materiais da cena.
+[ext_resource type="Shader" path="res://shaders/wave_surface.gdshader" id="1_wave"]
+[ext_resource type="Shader" path="res://shaders/pulse_metal.gdshader" id="2_pulse"]
+[ext_resource type="Shader" path="res://shaders/noise_tile.gdshader" id="3_noise"]
+
+; Material do plano ondulado: configura os uniforms do shader de ondas.
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wave"]
+shader = ExtResource("1_wave")
+shader_parameter/amplitude = 0.35
+shader_parameter/frequency = 4.0
+shader_parameter/speed = 1.4
+shader_parameter/deep_color = Color(0.05, 0.24, 0.55, 1)
+shader_parameter/crest_color = Color(0.35, 0.95, 1, 1)
+
+; Material da esfera: configura os uniforms do shader metalico pulsante.
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pulse"]
+shader = ExtResource("2_pulse")
+shader_parameter/pulse_strength = 0.18
+shader_parameter/pulse_speed = 2.0
+shader_parameter/base_color = Color(0.95, 0.24, 0.28, 1)
+
+; Gerador de ruido usado pelo shader do piso/bloco.
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_tile"]
+noise_type = 1
+frequency = 0.08
+fractal_octaves = 4
+
+; Textura procedural criada a partir do ruido.
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_tile"]
+width = 256
+height = 256
+noise = SubResource("FastNoiseLite_tile")
+
+; Material do piso/bloco: recebe a textura de ruido e as cores do shader.
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_noise"]
+shader = ExtResource("3_noise")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_tile")
+shader_parameter/tint_a = Color(0.08, 0.62, 0.34, 1)
+shader_parameter/tint_b = Color(0.95, 0.87, 0.43, 1)
+shader_parameter/noise_scale = 3.0
+shader_parameter/time_speed = 0.08
+
+; Malha do plano. As subdivisoes deixam o vertex shader mostrar a onda.
+[sub_resource type="PlaneMesh" id="PlaneMesh_wave"]
+size = Vector2(4, 3)
+subdivide_width = 80
+subdivide_depth = 80
+
+; Malha da esfera que sera deformada pelo shader pulsante.
+[sub_resource type="SphereMesh" id="SphereMesh_pulse"]
+radius = 1.1
+height = 2.2
+radial_segments = 64
+rings = 32
+
+; Malha do bloco/piso que recebe o shader com textura de ruido.
+[sub_resource type="BoxMesh" id="BoxMesh_tile"]
+size = Vector3(3, 0.18, 3)
+subdivide_width = 24
+subdivide_height = 2
+subdivide_depth = 24
+
+; Ambiente da cena: cor de fundo e luz ambiente.
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0.025, 0.03, 0.04, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.45, 0.48, 0.55, 1)
+ambient_light_energy = 0.45
+
+; No raiz que agrupa todos os elementos da cena.
+[node name="Main" type="Node3D"]
+
+; Aplica o ambiente configurado acima.
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+; Luz principal, responsavel por destacar o volume dos objetos.
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 4, 5)
+light_energy = 2.5
+shadow_enabled = true
+
+; Luz de preenchimento para suavizar areas muito escuras.
+[node name="FillLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2.2, 3)
+light_color = Color(0.5, 0.78, 1, 1)
+light_energy = 1.4
+omni_range = 7.0
+
+; Camera principal usada para visualizar os tres objetos.
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 3.1, 7.2)
+current = true
+fov = 50.0
+
+; Objeto 1: plano com shader que ondula os vertices.
+[node name="WaveSurface" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, -0.422618, 0, 0.422618, 0.906308, -3.0, 0, 0)
+mesh = SubResource("PlaneMesh_wave")
+surface_material_override/0 = SubResource("ShaderMaterial_wave")
+
+; Objeto 2: esfera com shader que pulsa e altera metalicidade.
+[node name="PulseMetalSphere" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+mesh = SubResource("SphereMesh_pulse")
+surface_material_override/0 = SubResource("ShaderMaterial_pulse")
+
+; Objeto 3: bloco/piso com shader baseado em textura de ruido.
+[node name="NoiseTile" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, -0.25, 0)
+mesh = SubResource("BoxMesh_tile")
+surface_material_override/0 = SubResource("ShaderMaterial_noise")

@@ -1,0 +1,26 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+; Configuracoes de compatibilidade criadas pelo proprio Godot.
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
+; Configuracoes principais do projeto.
+[application]
+
+; Nome mostrado na lista de projetos do Godot.
+config/name="Trabalho M2 - Shaders"
+
+; Cena executada quando apertar Play/F5.
+run/main_scene="res://scenes/main.tscn"
+
+; Versao/recursos do Godot usados pelo projeto.
+config/features=PackedStringArray("4.6", "Forward Plus")
