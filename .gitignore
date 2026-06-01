@@ -44,3 +44,14 @@
 .vscode/
 .vs/
 .cache/
+
+# Godot generated files
+**/.godot/
+**/.import/
+*.import
+export_presets.cfg
+export_credentials.cfg
+
+# Godot build/export output
+*.pck
+*.zip
