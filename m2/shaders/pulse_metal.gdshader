@@ -1,18 +1,14 @@
-// Shader espacial usado em um objeto 3D.
 shader_type spatial;
 
-// Uniforms: parametros editaveis pelo material da esfera.
 uniform float pulse_strength : hint_range(0.0, 0.5) = 0.18;
 uniform float pulse_speed : hint_range(0.1, 6.0) = 2.0;
 uniform vec4 base_color : source_color = vec4(0.95, 0.24, 0.28, 1.0);
 
-// Vertex: empurra cada vertice na direcao da normal, criando o pulso.
 void vertex() {
 	float pulse = sin(TIME * pulse_speed + VERTEX.y * 3.0) * pulse_strength;
 	VERTEX += NORMAL * pulse;
 }
 
-// Fragment: define cor e altera atributos padrao da Godot.
 void fragment() {
 	float shine = sin(TIME * pulse_speed) * 0.5 + 0.5;
 	ALBEDO = base_color.rgb;
